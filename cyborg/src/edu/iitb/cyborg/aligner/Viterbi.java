@@ -19,6 +19,8 @@ package edu.iitb.cyborg.aligner;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 
 /**
  * This program takes the path of the folder where all the model files 
@@ -38,6 +40,12 @@ public class Viterbi {
 	double newCost;
 	int backptr[];
 	int index;
+	
+	private static final double MEGABYTE = 1024d * 1024d;
+
+	public static double bytesToMegabytes(long bytes) {
+	    return bytes / MEGABYTE;
+	  }
 		
 	/**
 	 * This function takes the state number and the feature vector and
@@ -90,6 +98,8 @@ public class Viterbi {
 	
 	
 	public static void main(String[] args) throws IOException {
+		
+		long startTime = System.currentTimeMillis();
 		
 		String models = null;
 		String audioInput = null;
@@ -214,11 +224,58 @@ public class Viterbi {
 		System.out.println("best cost = " + max);
 		//System.out.println(pos);
 		System.out.println("sequence of states -->");
-		for(int i = 0; i < N; i++)
-			System.out.println(states[0][i] + " " + path[pos].backptr[i]);
+//		for(int i = 0; i < N; i++)
+//			System.out.println(states[0][i] + " " + path[pos].backptr[i]);
+		
+		System.out.println();
+		System.out.println("****************** Phone segmentation *****************");
+		System.out.println();
+		System.out.println("SFrm\tEFrm\tNoOfFrames\tTriPhone");
+		int SFrm = 0;
+		int EFrm = 0;
+		int noOfFrames = 0;
+		int totalNoOfFrames = 0;
+		
+		for(int i = 0; i < FilesLoader.triPhones.length; i++){
+			
+			noOfFrames 	= path[pos].backptr[i*3] + path[pos].backptr[i*3+1] + path[pos].backptr[i*3+2];
+			totalNoOfFrames += noOfFrames;
+			EFrm = totalNoOfFrames - 1;
+			
+			System.out.println(SFrm+"\t"+EFrm+"\t"+noOfFrames+"\t\t"+FilesLoader.triPhones[i].replaceAll("\t", " "));
+			SFrm = totalNoOfFrames;
+		}
+		
+		System.out.println();
+		System.out.println("Total no of frames : "+totalNoOfFrames);
+		System.out.println();
+		
+		System.out.println();
+	    System.out.println("****************** System Performance ********************");
+	    System.out.println();
+	    System.out.println(" Total time elapsed : "+(System.currentTimeMillis()-startTime)+ " ms");
+	    System.out.println();
+	    memInfo();
+	    System.out.println();
+	    System.out.println("*******************X*******************X*******************");
 		
 	}		
-		
+	
+	public static void memInfo()
+	{
+	    Runtime runtime = Runtime.getRuntime();
+	    // Run the garbage collector
+	    // runtime.gc();
+	    
+	    long memory = runtime.totalMemory() - runtime.freeMemory();
+	    NumberFormat numberFormator = new DecimalFormat("#0.00");
+	    
+	    System.out.println(" Total Memory alloacted by JVM               : "+numberFormator.format(bytesToMegabytes(runtime.totalMemory()))+ " MB");
+	    System.out.println(" Available free memory from allocated memory : "+numberFormator.format(bytesToMegabytes(runtime.freeMemory()))+ " MB");
+	    System.out.println(" Used memory in bytes                        : " + memory+" Bytes");
+	    System.out.println(" Used memory in megabytes                    : " + numberFormator.format(bytesToMegabytes(memory))+ " MB");
+	   	
+	}
 
 	
    }
