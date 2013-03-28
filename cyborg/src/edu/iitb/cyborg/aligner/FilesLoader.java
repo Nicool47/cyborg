@@ -31,6 +31,8 @@ public class FilesLoader {
 	private static HashMap<String, String> hashMapMdef;
 	private static HashMap<String, String> hashMapDict;
 	
+	public static String triPhones[];
+	
 	//-------------------//
 	static float mean[][][];
 	static float var[][][];
@@ -439,6 +441,10 @@ public class FilesLoader {
 		
 		System.out.println("\nActual transcription  : " + transcription);
 		for(int Index = 0; Index < words.length; Index++) {
+			if(getPhonemes(words[Index]) == null){
+				System.out.println("Word "+words[Index]+" doesn't exist in Dictionary!!");
+				System.exit(0);
+			}			
 			phonems = phonems + " "+getPhonemes(words[Index])+" ";
 			//System.out.println(getPhonemes(words[Index]));
 		}
@@ -459,6 +465,7 @@ public class FilesLoader {
 		
 		int indexFirst = 0;
 		
+		
 		System.out.println("Phonem sequence       : "+phonems);
 		
 		String phonemsArray[]= phonems.split(" ");
@@ -467,24 +474,28 @@ public class FilesLoader {
 		int noOfPhones = noOfTriPhones + 2;
 		System.out.println("No of phones in Trans : " + noOfPhones);
 		System.out.println();
-		states = new int[3][3*noOfTriPhones];
 		
+		states = new int[3][3*noOfTriPhones];
+		triPhones = new String[noOfTriPhones];
 		
 		int statesTemp[] = new int[5];
 		for(indexFirst = 1; indexFirst <= noOfTriPhones; indexFirst+=1) {
 			
 			if(indexFirst == 1){
 				System.out.print("Tri Phone : "+phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\tb");
+				triPhones[indexFirst-1] = phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\tb";
 				statesTemp = getStates(phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\tb");
 				System.out.println("\tStates : "+statesTemp[0]+" "+statesTemp[1]+" "+statesTemp[2]+" "+statesTemp[3]+" "+statesTemp[4]);
 			}
 			else if((indexFirst < noOfTriPhones) && (indexFirst > 1 )){
 				System.out.print("Tri Phone : "+phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\ti");
+				triPhones[indexFirst-1] = phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\ti";
 				statesTemp = getStates(phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\ti");
 				System.out.println("\tStates : "+statesTemp[0]+" "+statesTemp[1]+" "+statesTemp[2]+" "+statesTemp[3]+" "+statesTemp[4]);
 			}
 			else if(indexFirst == noOfTriPhones){
 				System.out.print("Tri Phone : "+phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\te");
+				triPhones[indexFirst-1] = phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\te";
 				statesTemp = getStates(phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\te");
 				System.out.println("\tStates : "+statesTemp[0]+" "+statesTemp[1]+" "+statesTemp[2]+" "+statesTemp[3]+" "+statesTemp[4]);
 			}
