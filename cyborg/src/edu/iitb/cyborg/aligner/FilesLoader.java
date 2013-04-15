@@ -475,11 +475,12 @@ public class FilesLoader {
 		System.out.println();
 		
 		states = new int[3][3*(noOfTriPhones+2)]; // Extra 2 is for beginning and ending mono silence
-		triPhones = new String[noOfTriPhones];
+		triPhones = new String[noOfTriPhones+2];
 		
 		int statesTemp[] = new int[5];
 		
 		// Beginning mono silence
+		triPhones[indexFirst - 1] = "SIL	-	-	-";
 		System.out.print("Tri PhoneE: " + "SIL	-	-	-");
 		statesTemp = getStates("SIL	-	-	-"); 
 		System.out.println("\tStates : "+statesTemp[0]+" "+statesTemp[1]+" "+statesTemp[2]+" "+statesTemp[3]+" "+statesTemp[4]);
@@ -502,19 +503,19 @@ public class FilesLoader {
 			
 			if(indexFirst == 1){
 				System.out.print("Tri Phone : "+phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\tb");
-				triPhones[indexFirst-1] = phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\tb";
+				triPhones[indexFirst] = phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\tb";
 				statesTemp = getStates(phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\tb");
 				System.out.println("\tStates : "+statesTemp[0]+" "+statesTemp[1]+" "+statesTemp[2]+" "+statesTemp[3]+" "+statesTemp[4]);
 			}
 			else if((indexFirst < noOfTriPhones) && (indexFirst > 1 )){
 				System.out.print("Tri Phone : "+phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\ti");
-				triPhones[indexFirst-1] = phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\ti";
+				triPhones[indexFirst] = phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\ti";
 				statesTemp = getStates(phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\ti");
 				System.out.println("\tStates : "+statesTemp[0]+" "+statesTemp[1]+" "+statesTemp[2]+" "+statesTemp[3]+" "+statesTemp[4]);
 			}
 			else if(indexFirst == noOfTriPhones){
 				System.out.print("Tri Phone : "+phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\te");
-				triPhones[indexFirst-1] = phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\te";
+				triPhones[indexFirst] = phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\te";
 				statesTemp = getStates(phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\te");
 				System.out.println("\tStates : "+statesTemp[0]+" "+statesTemp[1]+" "+statesTemp[2]+" "+statesTemp[3]+" "+statesTemp[4]);
 			}
@@ -548,6 +549,7 @@ public class FilesLoader {
 	
 		
 		//Ending mono silence
+		triPhones[indexFirst] = "SIL	-	-	-";
 		System.out.print("Tri PhoneE: " + "SIL	-	-	-");
 		statesTemp = getStates("SIL	-	-	-");
 		System.out.println("\tStates : "+statesTemp[0]+" "+statesTemp[1]+" "+statesTemp[2]+" "+statesTemp[3]+" "+statesTemp[4]);
