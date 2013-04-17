@@ -354,29 +354,11 @@ public class FilesLoader {
 	 * @throws IOException
 	 */
 	public void readFeat(String path) throws IOException {
-		
-		FileInputStream is = null;
-		DataInputStream dis = null;
-		try{
-			is = new FileInputStream(path);
-			dis = new DataInputStream(new BufferedInputStream(is));
-			int frames = (dis.readInt())/39;
-			//System.out.println(frames);
-			feat = new float[frames][39];
-			for(int i = 0; i < frames; i++)
-				for(int j = 0; j < 39; j++)
-						feat[i][j] = dis.readFloat();
-						
-		}catch(Exception e){
-			System.out.println(path + " file missing");
-			e.printStackTrace();	
+			
+			Delta d = new Delta();
+			feat = d.computeDeltaFeatures(path);
+			
 		}
-		finally{
-			if(is != null)is.close();
-			if(dis != null)dis.close();
-			}
-	}
-
 	
 	//------------------//
 	
