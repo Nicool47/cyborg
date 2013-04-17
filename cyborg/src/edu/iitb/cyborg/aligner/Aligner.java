@@ -132,6 +132,15 @@ public class Aligner {
 		// Get the sequence of states.
 		int states[][] = filesLoader.getStatesOfTrans(trans);
 		
+		System.out.println();
+		System.out.println("State Array : "+states.length+" X "+states[0].length);
+		for(int indexI = 0; indexI < states.length; indexI++){
+			for(int indexJ = 0; indexJ < states[indexI].length; indexJ++){
+				System.out.print(states[indexI][indexJ]+"\t");
+			}
+			System.out.println();
+		}
+		
 		int N = states[0].length;
 		System.out.println("Total number of states = "+N);
 		
@@ -203,13 +212,13 @@ public class Aligner {
 		int noOfFrames = 0;
 		int totalNoOfFrames = 0;
 		
-		for(int i = 0; i < FilesLoader.triPhones.length; i++){
+		for(int i = 0; i < FilesLoader.triPhoneList.length; i++){
 			
 			noOfFrames 	= stateDuration[i*3] + stateDuration[i*3+1] + stateDuration[i*3+2];
 			totalNoOfFrames += noOfFrames;
 			EFrm = totalNoOfFrames - 1;
 			
-			System.out.println(SFrm+"\t"+EFrm+"\t"+noOfFrames+"\t\t"+FilesLoader.triPhones[i].replaceAll("\t", " "));
+			System.out.println(SFrm+"\t"+EFrm+"\t"+noOfFrames+"\t\t"+FilesLoader.triPhoneList[i].replaceAll("\t", " "));
 			SFrm = totalNoOfFrames;
 		}
 		
