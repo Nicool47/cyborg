@@ -26,14 +26,15 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 
+
 public class FilesLoader {
 	
 	private static HashMap<String, String> hashMapMdef;
 	private static HashMap<String, String> hashMapDict;
 	
 	public static String triPhones[];
+	public static String triPhoneList[];
 	
-	//-------------------//
 	static float mean[][][];
 	static float var[][][];
 	static float mixWt[][];
@@ -42,7 +43,6 @@ public class FilesLoader {
 	static int gaussian;
 	static int senones;
 	static int ci_states;
-	//-------------------//
 
 	/**
      * Reads a 'mdef' file and loads it into HashMap. Each value is considered to be seperated by tab ('\t') <br> <br>
@@ -409,9 +409,8 @@ public class FilesLoader {
 			states[4] = Integer.parseInt(statesString[4]);
 		}
 		catch(NullPointerException e) {
-			System.out.println("'" + triPhones.replace("\t", " ")+ "'" + " : TriPhone doesn't exist in 'mdef' file.");
+				System.out.println("'" + triPhones.replace("\t", " ")+ "'" + " : TriPhone doesn't exist in 'mdef' file.");
 		}
-		
 		
 		return states;
 	}
@@ -449,7 +448,8 @@ public class FilesLoader {
 			//System.out.println(getPhonemes(words[Index]));
 		}
 		
-		return "SIL "+phonems.replaceAll("\\s+", " ").trim()+" SIL";
+		return "SIL "+phonems.trim()+" SIL";
+		//return "SIL "+phonems.replaceAll("\\s+", " ").trim()+" SIL";
 	}
 	
 	/**
@@ -461,14 +461,18 @@ public class FilesLoader {
 	public int[][] getStatesOfTrans(String transcription) {
 		 
 		String phonems = FilesLoader.getPhonemsOfTrans(transcription);
-		int states[][];
+		int states[][];		
 		
-		int indexFirst = 1;
 	
 		System.out.println("Phonem sequence       : "+phonems);
 		
 		String phonemsArray[]= phonems.split(" ");
-		int noOfTriPhones = phonemsArray.length - 2;
+		System.out.println("No of phones in the array :"+ phonems.replaceAll("\\s+", " ").trim().split(" ").length);
+		
+//		for(String s:phonemsArray)
+//			System.out.println(s);
+		
+		int noOfTriPhones =  phonems.replaceAll("\\s+", " ").trim().split(" ").length - 2;
 		System.out.println("No of tri Phones      : "+noOfTriPhones);
 		int noOfPhones = noOfTriPhones + 2;
 		System.out.println("No of phones in Trans : " + noOfPhones);
@@ -477,50 +481,87 @@ public class FilesLoader {
 		states = new int[3][3*(noOfTriPhones+2)]; // Extra 2 is for beginning and ending mono silence
 		triPhones = new String[noOfTriPhones+2];
 		
+		triPhoneList = new String[noOfTriPhones+2];
+		
+		// Separate phonems of words with NIL
+		for(int index = 0; index < phonemsArray.length; index++){
+			if(phonemsArray[index].equals("")){
+				phonemsArray[index] = "NIL";
+			}
+		}
+		
+//		for(String s:phonemsArray)
+//			System.out.println("System "+s);
+		
+		//  0 1 2 3  4   5 6 7  8  9   10  11 12 13 14  15
+		//SIL d NIL o n sh NIL e b aa  w  NIL   i  s  t  r  SIL
+
+	    int indexT = 1;
+	    int indexI = 1;
+	    
+		triPhoneList[0] =  "SIL	-	-	-";
+		
+		if(phonemsArray[indexI+1].equals("NIL")){
+			triPhoneList[indexT] = phonemsArray[indexI]+"\t"+phonemsArray[indexI - 1]+"\t"+phonemsArray[indexI + 2]+"\t"+"s";
+			indexT++;
+		}
+		else{
+			triPhoneList[indexT] = phonemsArray[indexI]+"\t"+phonemsArray[indexI - 1]+"\t"+phonemsArray[indexI + 1]+"\t"+"b";
+			indexT++;
+		}
+			
+					
+
+			for(indexI = 2; indexI < phonemsArray.length -2; indexI++){
+				if(phonemsArray[indexI-1].equals("NIL") && phonemsArray[indexI+1].equals("NIL")){
+					triPhoneList[indexT] = phonemsArray[indexI]+"\t"+phonemsArray[indexI - 2]+"\t"+phonemsArray[indexI + 2]+"\t"+"s";  
+					indexT++;
+				}
+				else if(phonemsArray[indexI].equals("NIL")){
+					continue;
+				}
+				else if(phonemsArray[indexI - 1].equals("NIL")){
+					triPhoneList[indexT] = phonemsArray[indexI]+"\t"+phonemsArray[indexI - 2]+"\t"+phonemsArray[indexI + 1]+"\t"+"b";  
+					indexT++;
+				}
+				else if(phonemsArray[indexI + 1].equals("NIL")){
+					triPhoneList[indexT] = phonemsArray[indexI]+"\t"+phonemsArray[indexI - 1]+"\t"+phonemsArray[indexI + 2]+"\t"+"e";  
+					indexT++;
+				}
+				else{
+					triPhoneList[indexT] = phonemsArray[indexI]+"\t"+phonemsArray[indexI - 1]+"\t"+phonemsArray[indexI + 1]+"\t"+"i";  
+					indexT++;
+				}
+				
+			}
+			
+							
+			if(phonemsArray[indexI -1].equals("NIL")){
+				triPhoneList[indexT] = phonemsArray[indexI]+"\t"+phonemsArray[indexI - 2]+"\t"+phonemsArray[indexI + 1]+" s";
+				indexT++;
+			}
+			else{
+				triPhoneList[indexT] = phonemsArray[indexI]+"\t"+phonemsArray[indexI - 1]+"\t"+phonemsArray[indexI + 1]+"\t"+"e";
+				indexT++;
+			}			
+
+	
+		triPhoneList[indexT] = phonemsArray[indexI]+"\t"+phonemsArray[indexI - 1]+"\t"+phonemsArray[indexI + 1]+"\t"+"e";
+		triPhoneList[noOfTriPhones+1] =  "SIL	-	-	-";
+		
+		//////////////////////////////
+		
+//		for(String tiPhn: triPhoneList)
+//			System.out.println("TriPhone: "+tiPhn);
+		
 		int statesTemp[] = new int[5];
 		
-		// Beginning mono silence
-		triPhones[indexFirst - 1] = "SIL	-	-	-";
-		System.out.print("Tri PhoneE: " + "SIL	-	-	-");
-		statesTemp = getStates("SIL	-	-	-"); 
-		System.out.println("\tStates : "+statesTemp[0]+" "+statesTemp[1]+" "+statesTemp[2]+" "+statesTemp[3]+" "+statesTemp[4]);
-		
-		states[0][((indexFirst -1)*3)] = statesTemp[2]; 
-	    states[0][((indexFirst -1)*3)+1] = statesTemp[3];
-	    states[0][((indexFirst -1)*3)+2] = statesTemp[4];
-	    
-	    states[1][((indexFirst -1)*3)] = statesTemp[1]; 
-	    states[1][((indexFirst -1)*3)+1] = statesTemp[1];
-	    states[1][((indexFirst -1)*3)+2] = statesTemp[1];
-	    
-	    states[2][((indexFirst -1)*3)] = statesTemp[0]; 
-	    states[2][((indexFirst -1)*3)+1] = statesTemp[0];
-	    states[2][((indexFirst -1)*3)+2] = statesTemp[0];
+		for(int indexFirst = 0; indexFirst < triPhoneList.length; indexFirst++){
 
-	    
-	    // Processing triPhones
-		for(indexFirst = 1; indexFirst <= noOfTriPhones; indexFirst+=1) {
+			System.out.print("Tri Phone : "+triPhoneList[indexFirst]);
+			statesTemp = getStates(triPhoneList[indexFirst]);
+			System.out.println("\tStates : "+statesTemp[0]+" "+statesTemp[1]+" "+statesTemp[2]+" "+statesTemp[3]+" "+statesTemp[4]);
 			
-			if(indexFirst == 1){
-				System.out.print("Tri Phone : "+phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\tb");
-				triPhones[indexFirst] = phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\tb";
-				statesTemp = getStates(phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\tb");
-				System.out.println("\tStates : "+statesTemp[0]+" "+statesTemp[1]+" "+statesTemp[2]+" "+statesTemp[3]+" "+statesTemp[4]);
-			}
-			else if((indexFirst < noOfTriPhones) && (indexFirst > 1 )){
-				System.out.print("Tri Phone : "+phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\ti");
-				triPhones[indexFirst] = phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\ti";
-				statesTemp = getStates(phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\ti");
-				System.out.println("\tStates : "+statesTemp[0]+" "+statesTemp[1]+" "+statesTemp[2]+" "+statesTemp[3]+" "+statesTemp[4]);
-			}
-			else if(indexFirst == noOfTriPhones){
-				System.out.print("Tri Phone : "+phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\te");
-				triPhones[indexFirst] = phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\te";
-				statesTemp = getStates(phonemsArray[indexFirst]+"\t"+phonemsArray[indexFirst - 1]+"\t"+phonemsArray[indexFirst+1]+"\te");
-				System.out.println("\tStates : "+statesTemp[0]+" "+statesTemp[1]+" "+statesTemp[2]+" "+statesTemp[3]+" "+statesTemp[4]);
-			}
-			
-
 			states[0][((indexFirst)*3)] = statesTemp[2]; 
 		    states[0][((indexFirst)*3)+1] = statesTemp[3];
 		    states[0][((indexFirst)*3)+2] = statesTemp[4];
@@ -532,41 +573,8 @@ public class FilesLoader {
 		    states[2][((indexFirst)*3)] = statesTemp[0]; 
 		    states[2][((indexFirst)*3)+1] = statesTemp[0];
 		    states[2][((indexFirst)*3)+2] = statesTemp[0];
-			
-		   
-//			states[0][((indexFirst -1)*3)] = statesTemp[2]; 
-//		    states[0][((indexFirst -1)*3)+1] = statesTemp[3];
-//		    states[0][((indexFirst -1)*3)+2] = statesTemp[4];
-//		    
-//		    states[1][((indexFirst -1)*3)] = statesTemp[1]; 
-//		    states[1][((indexFirst -1)*3)+1] = statesTemp[1];
-//		    states[1][((indexFirst -1)*3)+2] = statesTemp[1];
-//		    
-//		    states[2][((indexFirst -1)*3)] = statesTemp[0]; 
-//		    states[2][((indexFirst -1)*3)+1] = statesTemp[0];
-//		    states[2][((indexFirst -1)*3)+2] = statesTemp[0];
 		}
-	
-		
-		//Ending mono silence
-		triPhones[indexFirst] = "SIL	-	-	-";
-		System.out.print("Tri PhoneE: " + "SIL	-	-	-");
-		statesTemp = getStates("SIL	-	-	-");
-		System.out.println("\tStates : "+statesTemp[0]+" "+statesTemp[1]+" "+statesTemp[2]+" "+statesTemp[3]+" "+statesTemp[4]);
-		
-		states[0][((indexFirst)*3)] = statesTemp[2]; 
-	    states[0][((indexFirst)*3)+1] = statesTemp[3];
-	    states[0][((indexFirst)*3)+2] = statesTemp[4];
-	    
-	    states[1][((indexFirst)*3)] = statesTemp[1]; 
-	    states[1][((indexFirst)*3)+1] = statesTemp[1];
-	    states[1][((indexFirst)*3)+2] = statesTemp[1];
-	    
-	    states[2][((indexFirst)*3)] = statesTemp[0]; 
-	    states[2][((indexFirst)*3)+1] = statesTemp[0];
-	    states[2][((indexFirst)*3)+2] = statesTemp[0];
-		
-		
+				
 		return states;
 	}
 }
