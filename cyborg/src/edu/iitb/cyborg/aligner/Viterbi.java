@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
+import edu.iitb.cyborg.performance.Performance;
+
 /**
  * This program takes the path of the folder where all the model files 
  * (i.e mean, variances, mixture weights and transition matrices) are stored and takes the
@@ -99,7 +101,8 @@ public class Viterbi {
 	
 	public static void main(String[] args) throws IOException {
 		
-		long startTime = System.currentTimeMillis();
+        
+		Performance.logStartTime();
 		
 		String models = null;
 		String audioInput = null;
@@ -250,15 +253,9 @@ public class Viterbi {
 		System.out.println("Total no of frames : "+totalNoOfFrames);
 		System.out.println();
 		
-		System.out.println();
-	    System.out.println("****************** System Performance ********************");
-	    System.out.println();
-	    System.out.println(" Total time elapsed : "+(System.currentTimeMillis()-startTime)+ " ms");
-	    System.out.println();
-	    memInfo();
-	    System.out.println();
-	    System.out.println("*******************X*******************X*******************");
-		
+		Performance.logEndTime();
+		Performance.memInfo();
+
 	}		
 	
 	public static void memInfo()
