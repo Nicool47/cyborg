@@ -36,13 +36,13 @@ public class GmmExample {
 		//extracting the model file wrt the state
 		int state = 299;
 		int t = 3;
-		int gaussian = FilesLoader.gaussian;
+		int gaussian = FilesLoader.GAUSSIAN;
 		int d = 39;
 		
-		float x[] = FilesLoader.feat[t];
-		float mu[][] = FilesLoader.mean[state];
-		float sigma[][] = FilesLoader.var[state];
-		float c[] = FilesLoader.mixWt[state];
+		float x[] = FilesLoader.FEAT[t];
+		float mu[][] = FilesLoader.MEAN[state];
+		float sigma[][] = FilesLoader.VAR[state];
+		float c[] = FilesLoader.MIXWT[state];
 		
 		double[] log_b = new double[gaussian];
 		
