@@ -1,0 +1,1 @@
+-models ComIrva_FA_CMN_s1000_g16.cd_cont_1000 -name akolaa -in wav_files -feat features -t resources\Transcription.trans -dict resources\Dictionary.dic

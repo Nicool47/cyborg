@@ -1,0 +1,1 @@
+-mean means.txt -variance variances.txt -tmat transition_matrices.txt -mixwt mixture_weights.txt -mdef mdef
