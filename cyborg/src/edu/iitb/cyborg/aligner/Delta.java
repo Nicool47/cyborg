@@ -17,39 +17,25 @@
 
 package edu.iitb.cyborg.aligner;
 
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 public class Delta {
 	
-	public float[][] computeDeltaFeatures(String path) throws IOException {
+	/**
+	 * This function takes 
+	 * @param path
+	 * @return
+	 * @throws IOException
+	 */
+	public float[][] computeDeltaFeatures(float feat[][]) throws IOException {
 		
-		FileInputStream is = null;
-		DataInputStream dis = null;
-		try{
-			is = new FileInputStream(path);
-			dis = new DataInputStream( new BufferedInputStream(is));
-		    byte[] buffer = new byte[4];
-		    dis.read(buffer);  // Bytes are read into buffer
-//		    if (bytesRead != 4) {
-//		      throw new IOException("Unexpected End of Stream");
-//		    }
-		    
-		    int frames = 
-		        ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN).getInt()/13;
 			
-		    System.out.println(frames);
-		    
-			float[][] feat_s = new float[frames+6][13];
-			for(int i = 3; i < frames+3; i++)
-				for(int j = 0; j < 13; j++){
-					dis.read(buffer);
-			    	feat_s[i][j] =  ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN).getFloat();
-				}
+			int frames = feat.length;
+			float feat_s[][] = new float[frames+6][13];
+			// Appending 3 rows in the beginning and the end of feat.
+			for(int i = 0,n = 3; i < frames; i++, n++)
+				for(int j = 0; j < 13; j++)
+					feat_s[n][j] = feat[i][j];
 			
 			// replicating the first 3 rows.
 			for(int i = 0,n = 4; i < 3; i++,n++){
@@ -61,7 +47,6 @@ public class Delta {
 			for(int i = frames+3 ,n = frames-1; i < frames+6; i++,n++){
 				for(int j = 0; j < 13; j++)
 					feat_s[i][j] =  feat_s[n][j];
-				System.out.println(n);
 			}
 							
 			// computing the delta features
@@ -86,19 +71,9 @@ public class Delta {
 				 	 feat_s_d_dd[i][j+13] = feat_d[i][j];
 				 	 feat_s_d_dd[i][j+26] = feat_dd[i][j];
 				 }	 	 
-			 	
+		
+		// returning the array with delta and double delta features.
 		return feat_s_d_dd;
-			 
-		}catch(Exception e){
-			System.out.println(path + " file may be missing or problems with the feature file");
-			e.printStackTrace();
-			System.exit(0);
-		}
-		finally{
-			if(is != null)is.close();
-			if(dis != null)dis.close();
-			}
-		return null;
 		
 		
 	}
