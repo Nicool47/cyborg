@@ -24,6 +24,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.HashMap;
 
 
@@ -35,14 +37,14 @@ public class FilesLoader {
 	public static String triPhones[];
 	public static String triPhoneList[];
 	
-	static float mean[][][];
-	static float var[][][];
-	static float mixWt[][];
-	static float tmat[][][];
-	static float feat[][];
-	static int gaussian;
-	static int senones;
-	static int ci_states;
+	static float MEAN[][][];
+	static float VAR[][][];
+	static float MIXWT[][];
+	static float TMAT[][][];
+	static float FEAT[][];
+	static int GAUSSIAN;
+	static int SENONES;
+	static int CI_STATES;
 
 	/**
      * Reads a 'mdef' file and loads it into HashMap. Each value is considered to be seperated by tab ('\t') <br> <br>
@@ -163,13 +165,13 @@ public class FilesLoader {
 	
 	/**
 	 * This function takes the binary mean file given as an
-	 * argument and stores it in a static 3-d array 'mean[][][]' for fast computation.
+	 * argument and stores it in a static 3-d array 'MEAN[][][]' for fast computation.
 	 * 
 	 * The format of the mean array is as follows:<br>
 	 * <li>First dimension - senoneID </li>
-	 * <li>Second dimension - gaussian </li>
+	 * <li>Second dimension - GAUSSIAN </li>
 	 * <li>Third dimension - feature number </li> <br>
-	 * e.g. mean[500][4][38] refers to 500th senone, 4th gaussian and
+	 * e.g. MEAN[500][4][38] refers to 500th senone, 4th gaussian and
 	 * 38th feature.<br>
 	 * SenoneID, gaussian and feature vectors starts from index <b>0</b> 
 	 * and goes on till the number of senones, gaussians and 
@@ -184,13 +186,13 @@ public class FilesLoader {
 		try{
 			is = new FileInputStream(path);
 			dis = new DataInputStream(new BufferedInputStream(is));
-			senones = (int)dis.readFloat();
-			gaussian = (int)dis.readFloat();
-			mean = new float[senones][gaussian][39];
-			for(int i = 0; i < senones; i++)
-				for(int j = 0; j < gaussian; j++)
+			SENONES = (int)dis.readFloat();
+			GAUSSIAN = (int)dis.readFloat();
+			MEAN = new float[SENONES][GAUSSIAN][39];
+			for(int i = 0; i < SENONES; i++)
+				for(int j = 0; j < GAUSSIAN; j++)
 					for(int k = 0 ; k < 39; k++)
-						mean[i][j][k] = dis.readFloat();
+						MEAN[i][j][k] = dis.readFloat();
 			
 		}catch(Exception e){
 			System.out.println(path + " file missing");
@@ -204,14 +206,14 @@ public class FilesLoader {
 		
 	/**
 	 * * This function takes the binary variance file given as an
-	 * argument and stores it in a static 3-d array 'var[][][]' for
+	 * argument and stores it in a static 3-d array 'VAR[][][]' for
 	 *  fast computation.
 	 * 
 	 * The format of the variance array is as follows:<br>
 	 * <li>First dimension - senoneID </li>
 	 * <li>Second dimension - gaussian </li>
 	 * <li>Third dimension - feature number </li> <br>
-	 * e.g. var[500][4][38] refers to 500th state, 4th gaussian and
+	 * e.g. VAR[500][4][38] refers to 500th state, 4th gaussian and
 	 * 38th feature.<br>
 	 * senoneID, gaussian and feature vectors starts from index <b>0</b> 
 	 * and goes on till the number of senones, gaussians and 
@@ -225,13 +227,13 @@ public class FilesLoader {
 		try{
 			is = new FileInputStream(path);
 			dis = new DataInputStream(new BufferedInputStream(is));
-			senones = (int)dis.readFloat();
-			gaussian = (int)dis.readFloat();
-			var = new float[senones][gaussian][39];
-			for(int i = 0; i < senones; i++)
-				for(int j = 0; j < gaussian; j++)
+			SENONES = (int)dis.readFloat();
+			GAUSSIAN = (int)dis.readFloat();
+			VAR = new float[SENONES][GAUSSIAN][39];
+			for(int i = 0; i < SENONES; i++)
+				for(int j = 0; j < GAUSSIAN; j++)
 					for(int k = 0 ; k < 39; k++)
-						var[i][j][k] = dis.readFloat();
+						VAR[i][j][k] = dis.readFloat();
 			
 		}catch(Exception e){
 			System.out.println(path + " file missing");
@@ -245,17 +247,17 @@ public class FilesLoader {
 
 	/**
 	 * This function takes the binary transition matrix file given 
-	 * as an argument and stores it in a static 3-d array 'tmat[][][]' 
+	 * as an argument and stores it in a static 3-d array 'TMAT[][][]' 
 	 * for fast computation.
 	 * 
 	 * The format of the tmat array is as follows:<br>
 	 * <li>First dimension - phone ID </li>
 	 * <li>Second dimension - transition from </li>
 	 * <li>Third dimension - transition to.</li> <br>
-	 * e.g. tmat[60][1][2] refers to 60th CI phone with a transition
+	 * e.g. TMAT[60][1][2] refers to 60th CI phone with a transition
 	 * from first to  second state.<br>
 	 * The assumption is that the HMM cant skip state. <br>
-	 * So tmat[60][1][3], tmat[60][0][2] will be zero and so on.<br>
+	 * So TMAT[60][1][3], TMAT[60][0][2] will be zero and so on.<br>
 	 * State, transition from and transition to starts from index <b>0</b> 
 	 * and goes on till the number of CI phones and the number of 
 	 * states per senone/CI phone.
@@ -268,14 +270,14 @@ public class FilesLoader {
 		try{
 			is = new FileInputStream(path);
 			dis = new DataInputStream(new BufferedInputStream(is));
-			ci_states = (int)dis.readFloat();
+			CI_STATES = (int)dis.readFloat();
 			int states_per_triphone = (int)dis.readFloat();
-			tmat = new float[ci_states][states_per_triphone][states_per_triphone];
-			for(int i = 0; i < ci_states; i++)
+			TMAT = new float[CI_STATES][states_per_triphone][states_per_triphone];
+			for(int i = 0; i < CI_STATES; i++)
 				{
 				for(int j = 0; j < states_per_triphone - 1 ; j++){
 					for(int k = j ; k <= j+1; k++)
-						tmat[i][j][k] = dis.readFloat();
+						TMAT[i][j][k] = dis.readFloat();
 					}
 				}
 		}catch(Exception e){
@@ -290,13 +292,13 @@ public class FilesLoader {
 	
 	/**
 	 * This function takes the binary mixture weight file given 
-	 * as an argument and stores it in a static 2-d array 'mixWt[][]' 
+	 * as an argument and stores it in a static 2-d array 'MIXWT[][]' 
 	 * for fast computation.
 	 * 
-	 * The format of the mixWt array is as follows:<br>
+	 * The format of the MIXWT array is as follows:<br>
 	 * <li>First dimension - senoneID;</li>
 	 * <li>Second dimension - Gaussian mixture number; </li><br>
-	 * e.g. mixWt[400][8] refers to 400th senone and 8th gaussian.<br>
+	 * e.g. MIXWT[400][8] refers to 400th senone and 8th gaussian.<br>
 	 * SenoneID and gaussian mix no. starts from index <b>0</b> 
 	 * and goes on till the number of senones and gaussians
 	 * minus 1.</b>
@@ -309,12 +311,12 @@ public class FilesLoader {
 		try{
 			is = new FileInputStream(path);
 			dis = new DataInputStream(new BufferedInputStream(is));
-			senones = (int)dis.readFloat();
-			gaussian = (int)dis.readFloat();
-			mixWt = new float[senones][gaussian];
-			for(int i = 0; i < senones; i++)
-				for(int j = 0; j < gaussian; j++)
-						mixWt[i][j] = dis.readFloat();
+			SENONES = (int)dis.readFloat();
+			GAUSSIAN = (int)dis.readFloat();
+			MIXWT = new float[SENONES][GAUSSIAN];
+			for(int i = 0; i < SENONES; i++)
+				for(int j = 0; j < GAUSSIAN; j++)
+						MIXWT[i][j] = dis.readFloat();
 			
 		}catch(Exception e){
 			System.out.println(path + " file missing");
@@ -343,20 +345,58 @@ public class FilesLoader {
 	
 	/**
 	 * This function takes the path of the MFC file and
-	 * stores the features in a 2-d static array feat[][].<br>
+	 * stores the features in a 2-d static array FEAT[][].<br>
 	 * Format of the array is as follows:
 	 * <li> First dimension - time frame</li>
 	 * <li> Second dimension - feature number</li> <br>
 	 * Total number of features are 39.<br>
-	 * e.g. feat[5][30] refers to the 6th time frame and 31st feature. <br>
+	 * e.g. FEAT[5][30] refers to the 6th time frame and 31st feature. <br>
 	 * Remember the index for both the time frame and the feature number starts from 0.
 	 * @param path
 	 * @throws IOException
 	 */
 	public void readFeat(String path) throws IOException {
+		
+		int cmn = 1; //for cepstral mean normalization
+		FileInputStream is = null;
+		DataInputStream dis = null;
+		try{
+			is = new FileInputStream(path);
+			dis = new DataInputStream( new BufferedInputStream(is));
+		    byte[] buffer = new byte[4];
+		    dis.read(buffer);  // Bytes are read into buffer
+//		    if (bytesRead != 4) {
+//		      throw new IOException("Unexpected End of Stream");
+//		    }		    
+		    int frames = 
+		        ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN).getInt()/13;
+		    
+			float[][] feat_s = new float[frames][13];
+			for(int i = 0; i < frames; i++)
+				for(int j = 0; j < 13; j++){
+					dis.read(buffer);
+			    	feat_s[i][j] =  ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+				}
 			
+			if(cmn == 1){
+				Cmn c = new Cmn();
+				feat_s = c.cepstralMeanNormalize(feat_s);
+			}
+			
+			// Computing the delta features
 			Delta d = new Delta();
-			feat = d.computeDeltaFeatures(path);
+			FEAT = d.computeDeltaFeatures(feat_s);
+			
+		}catch(Exception e){
+			System.out.println(path + " file may be missing or problems with the feature file");
+			e.printStackTrace();
+			System.exit(0);
+		}
+		finally{
+			if(is != null)is.close();
+			if(dis != null)dis.close();
+			}
+		
 			
 		}
 	
