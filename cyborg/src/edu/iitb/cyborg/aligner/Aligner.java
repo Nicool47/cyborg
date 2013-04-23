@@ -32,11 +32,11 @@ public class Aligner {
 	 */
 	
 	public static double b(int state,float x[]) {
-		int gaussian = FilesLoader.gaussian;
+		int gaussian = FilesLoader.GAUSSIAN;
 		int d = 39;
-		float mu[][] = FilesLoader.mean[state];
-		float sigma[][] = FilesLoader.var[state];
-		float c[] = FilesLoader.mixWt[state];
+		float mu[][] = FilesLoader.MEAN[state];
+		float sigma[][] = FilesLoader.VAR[state];
+		float c[] = FilesLoader.MIXWT[state];
 		
 		double[] log_b = new double[gaussian];
 		
@@ -71,11 +71,11 @@ public class Aligner {
 		//This condition is if the transition is from one HMM 
 		//to another HMM
 		if((from != to) && (to % 3 == 0))
-			temp = FilesLoader.tmat[s][2][3];
+			temp = FilesLoader.TMAT[s][2][3];
 		else
 		// this condition is for transition from one state to another
 		// of same HMM
-		temp = FilesLoader.tmat[s][from%3][to%3];
+		temp = FilesLoader.TMAT[s][from%3][to%3];
 		
 		//double val = Math.log(temp)/Math.log(1.003);
 		return Math.log(temp);
@@ -109,7 +109,7 @@ public class Aligner {
 			System.exit(0);
 		}
 		
-		// load and initialize the models in the array
+		// load and initialise all the models (mean,variance, mixture weights and transition matrix) in the array
 		FilesLoader filesLoader = new FilesLoader();
 		filesLoader.initialize(models);
 		
@@ -124,10 +124,10 @@ public class Aligner {
 		//-------------------//
 		
 		//loads the feature file in the array feat
-		filesLoader.readFeat("features/suryaphuula_d_dd.mfc");
+		filesLoader.readFeat("features/murtiijaapuura.mfc");
 		
-		int totalTimeFrames = FilesLoader.feat.length;
-		float x[][] = FilesLoader.feat;
+		int totalTimeFrames = FilesLoader.FEAT.length;
+		float x[][] = FilesLoader.FEAT;
 		
 		// Get the sequence of states.
 		int states[][] = filesLoader.getStatesOfTrans(trans);
@@ -192,11 +192,7 @@ public class Aligner {
 		}
 		
 		
-		System.out.println();
-//		for(int i = 0; i < N; i++){
-//			System.out.println(stateDuration[i]);
-//		}
-		
+		System.out.println();	
         printResults(stateDuration);
 		
 	}	// end of main
