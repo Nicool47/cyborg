@@ -54,19 +54,19 @@ public class Viterbi {
 	 * @param x - Feature vector (39 dimensions)
 	 */
 	public static double b(int s,float x[]) {
-		double Z[] = new double[FilesLoader.gaussian];
-		for (int k = 0 ;k < FilesLoader.gaussian; k++){
+		double Z[] = new double[FilesLoader.GAUSSIAN];
+		for (int k = 0 ;k < FilesLoader.GAUSSIAN; k++){
 			double det = 1.0;
 			for (int q = 0; q < 39; q++)
-				det = det * FilesLoader.var[s][k][q];
-			Z[k] = FilesLoader.mixWt[s][k] /( Math.pow(2*Math.PI,39.0/2) * det);
+				det = det * FilesLoader.VAR[s][k][q];
+			Z[k] = FilesLoader.MIXWT[s][k] /( Math.pow(2*Math.PI,39.0/2) * det);
 		}
 		double Prob = 0.0;
 		double dist;
-			for(int k = 0; k < FilesLoader.gaussian ;k++){
+			for(int k = 0; k < FilesLoader.GAUSSIAN ;k++){
 				dist = 0;
 				for(int q = 0; q < 39; q++){
-					dist = dist +  Math.pow((x[q] - FilesLoader.mean[s][k][q]),2)/FilesLoader.var[s][k][q];
+					dist = dist +  Math.pow((x[q] - FilesLoader.MEAN[s][k][q]),2)/FilesLoader.VAR[s][k][q];
 				}
 			Prob = Prob + Z[k] * Math.exp(-dist / 2);
 		}
@@ -86,11 +86,11 @@ public class Viterbi {
 		//This condition is if the transition is from one HMM 
 		//to another HMM
 		if((from != to) && (to % 3 == 0))
-			temp = FilesLoader.tmat[s][2][3];
+			temp = FilesLoader.TMAT[s][2][3];
 		else
 		// this condition is for transition from one state to another
 		// of same HMM
-		temp = FilesLoader.tmat[s][from%3][to%3];
+		temp = FilesLoader.TMAT[s][from%3][to%3];
 		
 		double val = Math.log(temp)/Math.log(1.003);
 		return val;
@@ -147,8 +147,8 @@ public class Viterbi {
 //		" -i " + audioInput + " -o " + audioOutput);
 		filesLoader.readFeat(audioFeature);
 		//double x[] = {0.95,0.98,0.51,0.99,0.45,0.42,0.21,0.19,0.83,0.72,0.52,0.82,0.51,0.55,0.21,0.50,0.14,0.05,0.68,0.60,0.21,0.45,0.62,0.55,0.12,0.16,0.00,0.43,0.48,0.15,0.66,0.01,0.11,0.95,0.97,0.03,0.49,0.86,0.24};
-		int totalTimeFrames = FilesLoader.feat.length;
-		float x[][] = FilesLoader.feat;
+		int totalTimeFrames = FilesLoader.FEAT.length;
+		float x[][] = FilesLoader.FEAT;
 		System.out.println(totalTimeFrames);
 		
 		//int states[][] = {{5,6,9,11},{13,13,13,5}};
