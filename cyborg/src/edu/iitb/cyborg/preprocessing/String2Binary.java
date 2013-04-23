@@ -14,7 +14,7 @@
  * @author  : Jigar Gada
  */
 
-package edu.iitb.cyborg.aligner.preprocessing;
+package edu.iitb.cyborg.preprocessing;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
