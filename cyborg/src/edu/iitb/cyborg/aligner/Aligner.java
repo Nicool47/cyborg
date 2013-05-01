@@ -21,6 +21,8 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
+import edu.iitb.cyborg.performance.Performance;
+
 public class Aligner {
 
 	
@@ -82,6 +84,7 @@ public class Aligner {
 	}
 	
 	public static void main(String[] args) throws IOException {
+		Performance.logStartTime();
 		
 		String models = null;
 		String audioInput = null;
@@ -198,6 +201,9 @@ public class Aligner {
 //		}
 		
         printResults(stateDuration);
+        Performance.logEndTime();
+        Performance.memInfo();
+        
 		
 	}	// end of main
 	

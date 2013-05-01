@@ -453,13 +453,43 @@ public class FilesLoader {
 	}
 	
 	/**
+	 * This function generates the list of tri-Phones with the corresponding position of that triphone
+	 * in the transcription
+	 *  
+	 * eg: s - Single phone triPhone
+	 * 	   b - At the beginning
+	 *     e - At the end
+	 *     i - Internal
 	 * 
+	 * Input : 
+	 * 		suryaphuula
+	 * 
+	 * Tri Phone List generated:
+	 *  	SIL - - -
+	 *		s SIL uu b
+	 *		uu s r i
+	 *		r uu y i
+	 *		y r a i
+	 *		a y ph i
+	 * 		ph a u i
+	 *		u ph l i
+	 *		l u SIL e
+	 *		SIL - - -
+	 * 
+	 * 
+	 * Output: 
+	 * State Array 3 X 30
+	 *		30	31	32	1028	1032	1042	1160	1166	1172	970	993	1016	1224	1233	1236	245	301	330	958	961	963	1116	1131	1150	792	793	805	30	31	32	
+	 *		10	10	10	66	66	66	76	76	76	65	65	65	79	79	79	11	11	11	63	63	63	75	75	75	48	48	48	10	10	10	
+	 *		0	0	0	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	0	0	0	
+	 *     
 	 * @param transcription
 	 * @return <b>Integer</b> array containing states of each triPhone of transcription
 	 */
 	
 	public int[][] getStatesOfTrans(String transcription) {
 		 
+		//
 		String phonems = FilesLoader.getPhonemsOfTrans(transcription);
 		int states[][];		
 		
