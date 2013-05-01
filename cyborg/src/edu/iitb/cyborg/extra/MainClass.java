@@ -15,11 +15,12 @@
  * @contact : nicool@iitb.ac.in
  */
 
-package edu.iitb.cyborg.aligner;
+package edu.iitb.cyborg.extra;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import edu.iitb.cyborg.Fileloader.FilesLoader;
 
 public class MainClass {
 	

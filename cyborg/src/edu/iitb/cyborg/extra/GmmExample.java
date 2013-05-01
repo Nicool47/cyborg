@@ -15,9 +15,10 @@
  * @contact : jigargada23@yahoo.com
  */
 
-package edu.iitb.cyborg.aligner;
+package edu.iitb.cyborg.extra;
 
 import java.io.IOException;
+import edu.iitb.cyborg.Fileloader.FilesLoader;
 
 public class GmmExample {
 

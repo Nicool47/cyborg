@@ -64,7 +64,6 @@ public class FeatureFileDumper {
 		String outputFolder = null;
 		String fileIds = null;
 		String fileName = null;
-		int flag = 1;		
 
 		for(int i = 0; i < args.length ; i++){
 			if(args[i].equals("-ip")){
@@ -79,34 +78,25 @@ public class FeatureFileDumper {
 			if(args[i].equals("-i")){
 				fileName = args[++i];
 			}
-			if(args[i].equals("-flag")){
-				flag = Integer.parseInt(args[++i]);
-			}
 			
 		}
 		
+		if(inputFolder == null || outputFolder == null){
+			System.out.println("Insuffient arguments\n Usage ---> \n" +
+			" -ip <input Folder in which the wavFiles are stored>\n -op <output " +
+			"folder in which the MFc files will be stored>\n -i <name of the input" +
+			" file>\n -ctl <the name of the input" +
+				" file for batch processing>");
+			System.exit(0);
+		}
 		
 		
-		if(flag == 1){
+		if(fileName != null && fileIds == null){
 			System.out.println("considering single file processing");
-			if(inputFolder == null || outputFolder == null || fileName == null){
-				System.out.println("Insuffient arguments\n Usage ---> \n" +
-				" -ip <input Folder in which the wavFiles are stored>\n -op <output " +
-				"folder in which the MFc files will be stored>\n -i <name of the input" +
-				" file>");
-				System.exit(0);
-			}
 			FeatureFileExtractor.computeFeatures(fileName,inputFolder, outputFolder);
 		}
-		else if(flag == 2){
+		else if(fileName == null && fileIds != null){
 			System.out.println("considering batch file processing");
-			if(inputFolder == null || outputFolder == null || fileIds == null){
-				System.out.println("Insuffient arguments\n Usage ---> \n" +
-				"java -jar <> -ip <input Folder in which the wavFiles are stored> -op <output " +
-				"folder in which the MFc files will be stored> -ctl <the name of the input" +
-				" file for batch processing>");
-				System.exit(0);
-			}
 			BufferedReader br = null;
 			String fileName1;
 			
@@ -128,9 +118,19 @@ public class FeatureFileDumper {
 					}		
 				}
 		}
+		else if(fileName != null && fileIds != null){
+			System.out
+					.println("ERROR: the arguments -ctl and -i cannot be given at the same time");
+		}
+		
+		else if(fileName == null && fileIds == null){
+			System.out
+					.println("ERROR: Atleast one of the argument -ctl or -i have to be given");
+		}
+		
+		
 		else{
-			System.out.println("Error in the flag value: define it either 1 or 2" +
-					"for single or batch file processing");
+			System.out.println("Error in the argument list");
 		}
 		
 	}

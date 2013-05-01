@@ -14,13 +14,15 @@
  * @author  : Jigar Gada
  */
 
-package edu.iitb.cyborg.aligner;
+package edu.iitb.cyborg.extra;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+
+import edu.iitb.cyborg.Fileloader.FilesLoader;
 
 /**
  * This program takes the path of the folder where all the model files 
