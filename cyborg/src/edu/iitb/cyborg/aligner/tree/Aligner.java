@@ -20,16 +20,16 @@ package edu.iitb.cyborg.aligner.tree;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.ObjectInputStream.GetField;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
+import javax.lang.model.type.ArrayType;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
 import edu.iitb.cyborg.Fileloader.FilesLoader;
+import edu.iitb.cyborg.aligner.basic.Probability;
 import edu.iitb.frontend.audio.feature.FeatureFileExtractor;;
 //import edu.iitb.tree.Node;
 
@@ -40,9 +40,8 @@ public class Aligner {
 	//Tree structure ends
 	
 	public static void main(String[] args) throws IOException, IllegalArgumentException, UnsupportedAudioFileException {
-		
-
-		
+				
+		long time1 = System.currentTimeMillis();
 		String models = null;
 		String fileName = null;
 		String transcription = null;
@@ -123,18 +122,16 @@ public class Aligner {
 		int N = states[0].length;
 		System.out.println("Total number of states = "+N);
 		
-		double cost[][] = new double[N][totalTimeFrames];
-		int backPtr[][] = new int[N][totalTimeFrames];
 		Probability p = new Probability();
-//-------- Viterbi algorithm ---------------------------------------------------------
 		
-		cost[0][0] = p.b(states[0][0],x[0]);
-		backPtr[0][0] = 1;
+		/*
+		 * Viterbi algo with Tree structure starts
+		 */
 		
-		
-		//Tree structure starts
+		//Loading state information to HashTable to get next state info based on current state.
 		createHashMap(states);
 
+		//Creating and setting root node
 		Node nodeRoot = new Node();
 		nodeRoot.setParent(null);
 		int stateInfoTemp[] = new int[3];
@@ -145,127 +142,136 @@ public class Aligner {
 		nodeRoot.setStateInfo(stateInfoTemp);
 		nodeRoot.setCost(p.b(states[0][0],x[0]));
 		
-		ArrayList<Node> parentList = new ArrayList<Node>();
-		parentList.add(nodeRoot);
+		ArrayList<Node> parentListLevelN = new ArrayList<Node>();
+		ArrayList<Node> parentListLevelNplus1 = new ArrayList<Node>();
 		
-		
-		for(int indexI=1;indexI<6;indexI++){
-			
-			Iterator<Node> iteratorParent = parentList.iterator();
-			while(iteratorParent.hasNext()){
-				Node node[] = new Node[2];
+		parentListLevelN.add(nodeRoot);
+		parentListLevelNplus1.add(nodeRoot);
 				
-				Node parent = iteratorParent.next();
+		for(int indexI = 1; indexI < totalTimeFrames; indexI++){
+			
+			parentListLevelN.clear();
+			parentListLevelN.addAll(parentListLevelNplus1);
+			parentListLevelNplus1.clear();
+			
+			Iterator<Node> iteratorParent = parentListLevelN.iterator();
+		
+			while(iteratorParent.hasNext()){
+				
+				Node node[] = new Node[2]; // Creating two child nodes(Left and Right)
+				
+				Node parent = iteratorParent.next(); //Getting parent from patent list
+				
+				//Configuring left child node
 				node[0] = new Node();
 				node[0].setParent(parent);
-				
-				int stateInfoTempCh1[] = new int[3];
-				stateInfoTempCh1[0] = parent.getStateInfo()[0];
-				stateInfoTempCh1[1] = parent.getStateInfo()[1];
-				stateInfoTempCh1[2] = parent.getStateInfo()[2];
-				node[0].setStateInfo(stateInfoTemp);
+				node[0].setStateInfo(parent.getStateInfo());
 				node[0].setCost(p.b(node[0].getStateInfo()[1], x[indexI])+p.a(parent.getStateInfo()[2], parent.getStateInfo()[0], node[0].getStateInfo()[0])+parent.getCost());
-				System.out.println("Cost of child 1: "+node[0].getCost());
+				parentListLevelNplus1.add(node[0]);
 				
 				
-				System.out.println(parent.getStateInfo()[0]+" "+parent.getStateInfo()[1]+" "+parent.getStateInfo()[2]);
-				
-				String childStateInfoString[] = hashMapStates.get(Integer.toString(parent.getStateInfo()[0])+" "+Integer.toString(parent.getStateInfo()[1])+" "+Integer.toString(parent.getStateInfo()[2])).split(" ");
-				
+				String childStateInfo[];
+				try{
+					childStateInfo = hashMapStates.get(Integer.toString(parent.getStateInfo()[0])+" "+Integer.toString(parent.getStateInfo()[1])+" "+Integer.toString(parent.getStateInfo()[2])).split(" ");
+				}
+				catch(NullPointerException e){
+					break;
+				}
 				int childStateInfoTemp[] = new int[3];
-				for(int i = 0;i< childStateInfoString.length;i++)
-					childStateInfoTemp[i] = Integer.parseInt(childStateInfoString[i]);
+				for(int i = 0;i< childStateInfo.length;i++)
+					childStateInfoTemp[i] = Integer.parseInt(childStateInfo[i]);
 				
-				
-				System.out.print("====>"+childStateInfoTemp[0]+" "+childStateInfoTemp[1]+" "+childStateInfoTemp[2]);
-				//nodeRoot.setCost(p.b(states[0][0],x[0]));
 				
 				node[1] = new Node();
 				node[1].setParent(parent);
-				int stateInfoTempCh2[] = new int[3];
-				stateInfoTempCh2[0] = childStateInfoTemp[0];
-				stateInfoTempCh2[1] = childStateInfoTemp[1];
-				stateInfoTempCh2[2] = childStateInfoTemp[2];
-				node[1].setStateInfo(stateInfoTemp);
-				System.out.println("a parameters:"+ parent.getStateInfo()[2]+" "+parent.getStateInfo()[0]+" "+ node[1].getStateInfo()[0]);
-				
+				node[1].setStateInfo(childStateInfoTemp);				
 				node[1].setCost(p.b(node[1].getStateInfo()[1], x[indexI])+p.a(parent.getStateInfo()[2], parent.getStateInfo()[0], node[1].getStateInfo()[0]) + parent.getCost());
-				System.out.println("Cost of child 2: "+node[1].getCost());
-				
+				parentListLevelNplus1.add(node[1]);
+					
+				//childrenList.add(node[0]);
+				//childrenList.add(node[1]);
+				//parent.setChildren(childrenList);
+							
 			}
 			
-				
-				
-				
-				
-				
+			//Merging the nodes
+			ArrayList<Node> parentListFinal = new ArrayList<>();
+			ArrayList<Integer> stateSeq = new ArrayList<>();
 			
-			
-		}
-		//Tree structure ends
-		
-		
-		for(int t = 1; t < totalTimeFrames ; t++){
-			cost[0][t] = p.b(states[0][0],x[t]) + p.a(states[1][0],0,0) + cost[0][t-1];
-			backPtr[0][t] = 1;
-			
-			for(int s = 1; s <= N-1 ;s++){
-				if((t < N && s < t) || (t >= N)){
-					
-					double a1 = cost[s][t-1] + p.a(states[1][s],s,s);
-					double a2 = cost[s-1][t-1] + p.a(states[1][s-1],s-1,s);
-					if(a1 >= a2){
-						cost[s][t] = a1;
-						backPtr[s][t] = 1;
-					}
-					else{
-						cost[s][t] = a2;
-						backPtr[s][t] = 2;
-					}
-					cost[s][t] += p.b(states[0][s],x[t]);
+			for(int i = 0; i < parentListLevelNplus1.size(); i++){
+				ArrayList<Node> temp = new ArrayList<>();
+				List<Node> bList = parentListLevelNplus1.subList(i, parentListLevelNplus1.size());
+				if(!(stateSeq.contains(parentListLevelNplus1.get(i).getStateInfo()[0]))){
+					stateSeq.add(parentListLevelNplus1.get(i).getStateInfo()[0]);
+					for(int j = 0; j < bList.size(); j++)			
+						if(bList.get(j).getStateInfo()[0] == parentListLevelNplus1.get(i).getStateInfo()[0]) temp.add(bList.get(j));
+						
+					if(temp.size() > 1)
+						parentListFinal.add(Aligner.max(temp));
+					else
+						parentListFinal.add(temp.get(0));
+
 				}
+			
+			}
+
+			//get the node with maximum cost.
+			double maxCost = Aligner.max(parentListFinal).getCost();
+			//System.out.println("maximum cost " + maxCost);
+			double pruneLimit = -126.64; // ln(10^-55)
+			double beam = maxCost + pruneLimit;
+			//System.out.println("beam cost " + beam);
+			ArrayList<Node> prunedList = new ArrayList<>();
 				
-				if(t< N && s==t){
-					cost[s][t] = cost[s-1][t-1] + p.a(states[1][s-1],s-1,s) + p.b(states[0][s],x[t]);
-					backPtr[s][t] = 2;
-					}
-				}
+			//System.out.ptintln("Informations");
+			//System.out.println("info for pruned nodes");
+			for(Node n : parentListFinal){
+				//pruning 
+				if(n.getCost() > beam){
+					prunedList.add(n);
+					Node parent = n.getParent();
+					parent.setChild(n);
+				}			
+			}
+			// assigning the final reference
+			//parentListLevelNplus1 = parentListFinal;
+			parentListLevelNplus1 = prunedList;
+			
 		}
 		
 		int stateDuration[] = new int[N];
 		int s = N - 1;
-		for(int t = totalTimeFrames - 1; t >= 0; t--){
-			if(backPtr[s][t] == 1){
-				stateDuration[s]++;
-			}
-			else if(backPtr[s][t] == 2){
-				stateDuration[s]++;
-				s--;
-			}
-			else System.out.println("error in force alignment--> backPtr value = 0");
+		Node child = parentListLevelNplus1.get(parentListLevelNplus1.size()-1);
+		stateDuration[s]++;
+		
+		while(child.getParent() != null){
+			Node parent = child.getParent();
+			//System.out.println(parent.getStateInfo()[1]);
+			if(parent.getStateInfo()[1] != child.getStateInfo()[1]) s--;
+			stateDuration[s]++;
+			child = parent;
+
 		}
+
+		printResults(stateDuration);
 		
+		System.out.println("total time using tree = " + (System.currentTimeMillis() - time1) + " ms");
 		
-		System.out.println();	
-        printResults(stateDuration);
-        
-        System.out.println("Backpointer values:");
-        for(int array[]:backPtr){
-        	for(int ptr:array)
-        		System.out.print(ptr+" ");
-        	System.out.println();
-        }
-        
-        System.out.println("Cost values:");
-        for(double array[]:cost){
-        	for(double val:array){
-        		NumberFormat numberFormator = new DecimalFormat("000.0000");
-        		System.out.print(numberFormator.format(val)+"\t");
-        	}
-        	System.out.println();
-        }
+		/*
+		 * Tree structure ends
+		 */
 		
 	}	// end of main
+	
+	
+
+	public static Node max(ArrayList<Node> elements) {
+		Node m = elements.get(0);
+		for(int i = 1 ; i < elements.size() ; i++){
+			if(elements.get(i).getCost() > m.getCost()) m = elements.get(i);
+		}
+		return m;
+	}
 	
 	static void printResults(int stateDuration[])
 	{
@@ -308,27 +314,30 @@ public class Aligner {
 			value[1] = states[0][i+1];
 			value[2] = states[1][i+1];
 			
-			String temp1 = Integer.toString(value[0])+" "+Integer.toString(value[1])+" "+Integer.toString(value[2]);
-			String temp2 = Integer.toString(value[0])+" "+Integer.toString(value[1])+" "+Integer.toString(value[2]);
-			
-			hashMapStates.put(Integer.toString(key[0])+" "+Integer.toString(key[1])+" "+Integer.toString(key[2]), Integer.toString(value[0])+" "+Integer.toString(value[1])+" "+Integer.toString(value[2]));
-			//int x[] = hashMapStates.get(key[0]+" "+key[1]+" "+key[2]);
-			//System.out.println(key[0]+" "+key[1]+" "+key[2]+"==>"+x[0]+ " "+x[1]+" "+x[2]);
+			hashMapStates.put(Integer.toString(key[0])+" "+Integer.toString(key[1])+" "+
+			Integer.toString(key[2]), Integer.toString(value[0])+" "+
+			Integer.toString(value[1])+" "+Integer.toString(value[2]));
 		}
 	}
 }
 
+
+//Structure of the tree node
 class Node{
 
+	//Reference to parent node
 	Node parent;
-	//Stores 
-	//stateInfo[0] : State ID index
-	//stateInfo[1] : State ID
-	//stateInfo[2] : State tmat value
 	
+	/* stateInfo[0] : State ID index
+	 * stateInfo[1] : State ID
+	 * stateInfo[2] : State tmat value 
+	 */
 	int stateInfo[];
+	
 	double cost;
 	boolean active;
+	
+	//Stores list of children in left to right order.
 	ArrayList<Node> children = new ArrayList<Node>();
 	
 	Node(){
@@ -373,5 +382,9 @@ class Node{
 	public void setChildren(ArrayList<Node> children) {
 		this.children = children;
 	}		
+	
+	public void setChild(Node child) {
+		this.children.add(child);
+	}	
 	
 }
