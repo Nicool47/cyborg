@@ -26,11 +26,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 
+import edu.iitb.cyborg.aligner.TreeFunctions.Alignment;
 import edu.iitb.frontend.audio.feature.*;
 public class FilesLoader {
 	
 	private static HashMap<String, String> hashMapMdef;
-	private static HashMap<String, String> hashMapDict;
+	public static HashMap<String, String> hashMapDict;
 	
 	public static String triPhones[];
 	public static String triPhoneList[];
@@ -355,7 +356,16 @@ public class FilesLoader {
 	 */
 	public void readFeat(String path) throws IOException {
 		
-		int cmn = 1; //for cepstral mean normalization
+		int cmn = 0; 
+		//for cepstral mean normalization
+		if(Alignment.cmn.equals("yes")) cmn = 1;
+		else if(Alignment.cmn.equals("no"));
+		else {
+			System.out.println("improper argument assigned to 'cmn' = "
+					+ Alignment.cmn);
+			System.exit(0);
+		}
+		
 		FileInputStream is = null;
 		DataInputStream dis = null;
 		try{
@@ -367,6 +377,7 @@ public class FilesLoader {
 				for(int j = 0; j < 13; j++)
 						feat_s[i][j] = dis.readFloat();
 
+			
 			if(cmn == 1){
 				Cmn c = new Cmn();
 				feat_s = c.cepstralMeanNormalize(feat_s);
@@ -398,10 +409,11 @@ public class FilesLoader {
 	 * eg: <br>
 	 * states[0] = 1    // attrib[0: filler and 1: n/a] <br>
 	 * states[1] = 11   // tmat <br>
-	 * states[2] = 265  // state no of 'a' <br>
-	 * states[3] = 296  // state no of 'SIL' <br>
-	 * states[4] = 324  // state no of 'b' <br>
+	 * states[2] = 265  // state 0 <br>
+	 * states[3] = 296  // state 1 <br>
+	 * states[4] = 324  // state 2 <br>
 	 * 
+	 * state 0, 1, 2 are states of tri-phone 'a SIL b' 
 	 */
 
 	public int[] getStates(String triPhones) {
