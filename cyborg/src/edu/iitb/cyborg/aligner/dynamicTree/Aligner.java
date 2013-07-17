@@ -17,8 +17,6 @@
 
 package edu.iitb.cyborg.aligner.dynamicTree;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,7 +30,6 @@ import edu.iitb.cyborg.aligner.basic.Probability;
 import edu.iitb.cyborg.fst.Fst2Triphones;
 import edu.iitb.cyborg.fst.Triphone;
 import edu.iitb.frontend.audio.feature.FeatureFileExtractor;
-import edu.iitb.cyborg.performance.Performance;
 
 public class Aligner {
 
@@ -41,9 +38,7 @@ public class Aligner {
 	//Tree structure ends
 	
 	public static void main(String[] args) throws IOException, IllegalArgumentException, UnsupportedAudioFileException {
-			
-		Performance.logStartTime();
-		
+					
 		String models = null;
 		String fileName = null;
 		String transcription = null;
@@ -94,9 +89,9 @@ public class Aligner {
 		filesLoader.loadMdef(models+"\\mdef_tab");
 		
 		
-		BufferedReader brTrans = new BufferedReader(new FileReader(transcription));
-		String trans = brTrans.readLine();
-		brTrans.close();
+//		BufferedReader brTrans = new BufferedReader(new FileReader(transcription));
+//		String trans = brTrans.readLine();
+//		brTrans.close();
 		//-------------------//
 		
 		//extracting mfcc features
@@ -111,87 +106,53 @@ public class Aligner {
 		float x[][] = FilesLoader.FEAT;
 		
 		// Get the sequence of states.
-		int states[][] = filesLoader.getStatesOfTrans(trans);
+		//int states[][] = filesLoader.getStatesOfTrans(trans);
 		
-		System.out.println();
-		System.out.println("State Array : "+states.length+" X "+states[0].length);
-		for(int array[]: states){
-			for(int state:array)
-				System.out.print(state+"\t");
-			System.out.println();
-		}
+		//System.out.println();
+		//System.out.println("State Array : "+states.length+" X "+states[0].length);
+		//for(int array[]: states){
+		//	for(int state:array)
+		//		System.out.print(state+"\t");
+		//	System.out.println();
+		//}
 		
-		int N = states[0].length;
-		System.out.println("Total number of states = "+N);
+		//int N = states[0].length;
+		//System.out.println("Total number of states = "+N);
 		
 		Probability p = new Probability();
 		
 		/*
 		 * Viterbi algo with Tree structure starts
 		 */
-		
-		//Loading state information to HashTable to get next state info based on current state.
-		//createHashMap(states);
 
 		//makes the required table for context dependency
 		Fst2Triphones.makeTable();
 		
-		//Global index
-		int index = 0;
+		//Global branch Id
+//		int branchId = 1;
 		
 		//Creating and setting root node
 		Node nodeRoot = new Node();
 		
+		//Creating triPhone object as a temporary container
 		Triphone triphoneObj = new Triphone();
 		
-		//Temp code
-		String triphone = "l	SIL	aa	b";
-		//String triphone1 = "SIL	-	-	-";
-		int statesTemp[] = filesLoader.getStates(triphone);
-
-		nodeRoot.setParent(null);
-		int stateInfoTemp[] = new int[3];
-		stateInfoTemp[0] = index;
-		stateInfoTemp[1] = statesTemp[2];
-		stateInfoTemp[2] = statesTemp[1];
-		
-		nodeRoot.setTriPhone(triphone);
-		nodeRoot.setStateInfo(stateInfoTemp);
-		nodeRoot.setCost(p.b(statesTemp[2],x[0]));
-		
-		triphoneObj.setTriphone(triphone);
-		triphoneObj.setObsState(statesTemp[4]);
-		triphoneObj.setTmatState(statesTemp[1]);
-		triphoneObj.setId(index%3+1);
-		
-		//ArrayList<Triphone> tempList = new ArrayList<>();
-		//tempList = triphoneObj.getNextState(triphoneObj);
-		
-		for(Triphone t : triphoneObj.getNextState(triphoneObj)){
-			System.out.println("next triphone -->" + t.getTriphone());
-			System.out.println("Obs state--> " + t.getObsState() + " //tmat state--> " + t.getTmatState());
-		}
-		
-		//System.exit(0);
-		//Temp code
-		
-
-		/* Temporary commented */
-		
-//		nodeRoot.setParent(null);
-//		int stateInfoTemp[] = new int[3];
-//		stateInfoTemp[0] = index++;
-//		stateInfoTemp[1] = triphoneObj.getStartState().get(0).getObsState();
-//		stateInfoTemp[2] = triphoneObj.getStartState().get(0).getTmatState();
-//		
-//		nodeRoot.setTriPhone(triphoneObj.getStartState().get(0).getTriphone());
-//		nodeRoot.setStateInfo(stateInfoTemp);
-//		nodeRoot.setCost(p.b(states[0][0],x[0]));
-		
-		/*********************/
-		
+		//Lists to keep track of last two levels nodes
 		ArrayList<Node> parentListLevelN = new ArrayList<Node>();
 		ArrayList<Node> parentListLevelNplus1 = new ArrayList<Node>();
+		
+		//Configuring root node
+		nodeRoot.setParent(null);
+		
+		int stateInfoTemp[] = new int[3];
+		stateInfoTemp[0] = 0;
+		stateInfoTemp[1] = triphoneObj.getStartState().get(0).getObsState();
+		stateInfoTemp[2] = triphoneObj.getStartState().get(0).getTmatState();
+		
+		nodeRoot.setTriPhone(triphoneObj.getStartState().get(0).getTriphone());
+		nodeRoot.setStateInfo(stateInfoTemp);
+		nodeRoot.setCost(p.b(nodeRoot.getStateInfo()[1], x[0]));
+		//nodeRoot.setBranchId(0);
 		
 		parentListLevelN.add(nodeRoot);
 		parentListLevelNplus1.add(nodeRoot);
@@ -206,87 +167,106 @@ public class Aligner {
 		
 			while(iteratorParent.hasNext()){
 				
-				Node parent = iteratorParent.next(); //Getting parent from patent list
+				Node parent = iteratorParent.next(); //Getting parent from parent list
 				
 				triphoneObj.setTriphone(parent.getTriPhone());
+				triphoneObj.setId(parent.getStateInfo()[0]);
 				triphoneObj.setObsState(parent.getStateInfo()[1]);
 				triphoneObj.setTmatState(parent.getStateInfo()[2]);
-				triphoneObj.setId((parent.getStateInfo()[0])%3+1);
 				
-				ArrayList<Triphone> tempList = new ArrayList<>();
-				tempList = triphoneObj.getNextState(triphoneObj);
+	
+				ArrayList<Triphone> triPhoneList = new ArrayList<>();
+				triPhoneList = triphoneObj.getNextState(triphoneObj);
+				System.out.print("\nInput : "+triphoneObj.getTriphone());
+				System.out.print("\tOutput : ");
+				for(Triphone tri : triPhoneList)
+					System.out.print("\t"+tri.getTriphone());
+				System.out.println();
+				System.out.print("-----------------");
 				
-				Node node[] = new Node[tempList.size()]; // Creating two child nodes(Left and Right)
+				Node node[] = new Node[triPhoneList.size()+1]; // Creating child nodes
 
 				//Configuring left child node
 				node[0] = new Node();
+				
 				node[0].setParent(parent);
+				
+				node[0].setTriPhone(parent.getTriPhone());
 				node[0].setStateInfo(parent.getStateInfo());
 				node[0].setCost(p.b(node[0].getStateInfo()[1], x[indexI])+p.a(parent.getStateInfo()[2], parent.getStateInfo()[0], node[0].getStateInfo()[0])+parent.getCost());
+				//node[0].setBranchId(parent.getBranchId());
+				
 				parentListLevelNplus1.add(node[0]);
 				
+//				if(triPhoneList.size() == 0)
+//					System.out.println("\ntriPhoneList with size 0 "+node[0].getTriPhone()+" Id"+node[0].getStateInfo()[0]);
 				
 				//Configuring child nodes in left to right order
-				for(int i=1; i<tempList.size(); i++){
+				for(int i=1; i< (triPhoneList.size()+1); i++){
 					
 					node[i] = new Node();
-					node[i].setParent(parent);
-					int stateInfoTempInside[] = new int[3];
-					stateInfoTempInside[0] = index;
-					stateInfoTempInside[1] = triphoneObj.getStartState().get(i).getObsState();
-					stateInfoTempInside[2] = triphoneObj.getStartState().get(i).getTmatState();
 					
+					node[i].setParent(parent);
+					
+					int stateInfoTempInside[] = new int[3];
+					stateInfoTempInside[0] = node[0].getStateInfo()[0]+1;
+					stateInfoTempInside[1] = triPhoneList.get(i-1).getObsState();
+					stateInfoTempInside[2] = triPhoneList.get(i-1).getTmatState();
+					
+					//System.out.println("State No: "+ stateInfoTempInside[0] );
+					
+					node[i].setTriPhone(triPhoneList.get(i-1).getTriphone());
 					node[i].setStateInfo(stateInfoTempInside);
 					node[i].setCost(p.b(node[i].getStateInfo()[1], x[indexI])+p.a(parent.getStateInfo()[2], parent.getStateInfo()[0], node[i].getStateInfo()[0])+parent.getCost());
+				
+					//Assign different branch Id in case of total more then two branches
+//					if(triPhoneList.size() > 1)
+//						node[i].setBranchId(branchId++);
+//					else
+//						node[i].setBranchId(parent.getBranchId());						
+					
 					parentListLevelNplus1.add(node[i]);
 					
-				}
-				
-				index++;
-				
-//				//Configuring left child node
-//				node[0] = new Node();
-//				node[0].setParent(parent);
-//				node[0].setStateInfo(parent.getStateInfo());
-//				node[0].setCost(p.b(node[0].getStateInfo()[1], x[indexI])+p.a(parent.getStateInfo()[2], parent.getStateInfo()[0], node[0].getStateInfo()[0])+parent.getCost());
-//				parentListLevelNplus1.add(node[0]);
-//				
-//				
-//				String childStateInfo[];
-//				try{
-//					childStateInfo = hashMapStates.get(Integer.toString(parent.getStateInfo()[0])+" "+Integer.toString(parent.getStateInfo()[1])+" "+Integer.toString(parent.getStateInfo()[2])).split(" ");
-//				}
-//				catch(NullPointerException e){
-//					break;
-//				}
-//				int childStateInfoTemp[] = new int[3];
-//				for(int i = 0;i< childStateInfo.length;i++)
-//					childStateInfoTemp[i] = Integer.parseInt(childStateInfo[i]);
-//				
-//				
-//				node[1] = new Node();
-//				node[1].setParent(parent);
-//				node[1].setStateInfo(childStateInfoTemp);				
-//				node[1].setCost(p.b(node[1].getStateInfo()[1], x[indexI])+p.a(parent.getStateInfo()[2], parent.getStateInfo()[0], node[1].getStateInfo()[0]) + parent.getCost());
-//				parentListLevelNplus1.add(node[1]);
-					
-				//childrenList.add(node[0]);
-				//childrenList.add(node[1]);
-				//parent.setChildren(childrenList);
-							
+				}							
 			}
+			
+//			//Merging the nodes
+//			ArrayList<Node> parentListFinal = new ArrayList<>();
+//			ArrayList<Integer> stateSeq = new ArrayList<>();
+//			
+//			for(int i = 0; i < parentListLevelNplus1.size(); i++){
+//				ArrayList<Node> temp = new ArrayList<>();
+//				List<Node> bList = parentListLevelNplus1.subList(i, parentListLevelNplus1.size());
+//				if(!(stateSeq.contains(parentListLevelNplus1.get(i).getStateInfo()[0]))){
+//					stateSeq.add(parentListLevelNplus1.get(i).getStateInfo()[0]);
+//					for(int j = 0; j < bList.size(); j++)			
+//						if((bList.get(j).getStateInfo()[0] == parentListLevelNplus1.get(i).getStateInfo()[0]) && 
+//								(bList.get(j).getStateInfo()[1] == parentListLevelNplus1.get(i).getStateInfo()[1]))
+//								temp.add(bList.get(j));
+//						
+//					if(temp.size() > 1)
+//						parentListFinal.add(Aligner.max(temp));
+//					else
+//						parentListFinal.add(temp.get(0));
+//
+//				}
+//			
+//			}
+			
 			
 			//Merging the nodes
 			ArrayList<Node> parentListFinal = new ArrayList<>();
-			ArrayList<Integer> stateSeq = new ArrayList<>();
+			ArrayList<String> stateSeqAndObjId = new ArrayList<>();
 			
 			for(int i = 0; i < parentListLevelNplus1.size(); i++){
 				ArrayList<Node> temp = new ArrayList<>();
 				List<Node> bList = parentListLevelNplus1.subList(i, parentListLevelNplus1.size());
-				if(!(stateSeq.contains(parentListLevelNplus1.get(i).getStateInfo()[0]))){
-					stateSeq.add(parentListLevelNplus1.get(i).getStateInfo()[0]);
+				if(!(stateSeqAndObjId.contains(parentListLevelNplus1.get(i).getStateInfo()[0]+"\t"+parentListLevelNplus1.get(i).getStateInfo()[1]))){
+					stateSeqAndObjId.add(parentListLevelNplus1.get(i).getStateInfo()[0]+"\t"+parentListLevelNplus1.get(i).getStateInfo()[1]);
 					for(int j = 0; j < bList.size(); j++)			
-						if(bList.get(j).getStateInfo()[0] == parentListLevelNplus1.get(i).getStateInfo()[0]) temp.add(bList.get(j));
+						if((bList.get(j).getStateInfo()[0] == parentListLevelNplus1.get(i).getStateInfo()[0]) && 
+								(bList.get(j).getStateInfo()[1] == parentListLevelNplus1.get(i).getStateInfo()[1]))
+								temp.add(bList.get(j));
 						
 					if(temp.size() > 1)
 						parentListFinal.add(Aligner.max(temp));
@@ -294,8 +274,19 @@ public class Aligner {
 						parentListFinal.add(temp.get(0));
 
 				}
+				
 			
 			}
+			
+			System.out.println();
+			System.out.println("Parent list levelNplus1");
+			for(Node child : parentListLevelNplus1)
+				System.out.println(child.getTriPhone()+"\t"+child.getStateInfo()[0]+"\t"+child.getStateInfo()[1]);
+			
+			System.out.println();
+			System.out.println("Parent list final");
+			for(Node child : parentListFinal)
+				System.out.println(child.getTriPhone()+"\t"+child.getStateInfo()[0]+"\t"+child.getStateInfo()[1]);
 
 			//get the node with maximum cost.
 			double maxCost = Aligner.max(parentListFinal).getCost();
@@ -315,28 +306,93 @@ public class Aligner {
 				}			
 			}
 			// assigning the final reference
-			//parentListLevelNplus1 = parentListFinal;
-			parentListLevelNplus1 = prunedList;
+			parentListLevelNplus1 = parentListFinal;
+			//parentListLevelNplus1 = prunedList;
 			
 		}
 		
-		int stateDuration[] = new int[N];
-		int s = N - 1;
-		Node child = parentListLevelNplus1.get(parentListLevelNplus1.size()-1);
-		stateDuration[s]++;
 		
-		while(child.getParent() != null){
-			Node parent = child.getParent();
-
-			if(parent.getStateInfo()[1] != child.getStateInfo()[1]) s--;
-			stateDuration[s]++;
-			child = parent;
-
+		//Back tracing
+		//ArrayList<Integer> stateDuration = new ArrayList<>();
+		//int stateDuration[] = new int[N];
+		//int s = N - 1;
+		//Node child = parentListLevelNplus1.get(parentListLevelNplus1.size()-1);
+		
+		//Assuming silence as a last state and backtracing it from silence.  
+		int states[] = filesLoader.getStates("SIL\t-\t-\t-");
+		
+		int count=0;
+		Node backTraceChild = new Node();
+		double max=0; 
+		
+		// Initilize max value
+		for(Node child : parentListLevelNplus1)
+			if(states[4] == child.getStateInfo()[1]){
+				max = child.getCost();
+				System.out.println("Max cost : "+max);
+				break;
+			}
+		
+		//Find max value of cost
+		for(Node child: parentListLevelNplus1){
+			if(states[4] == child.getStateInfo()[1]){
+				count++;
+				if(max <= child.getCost()){
+			    	max = child.getCost();
+			    	backTraceChild = child;
+			    	//count++;
+			    }
+			    System.out.println("Max cost : "+max);
+				
+//				if(count == 19)
+//					break;
+			}
 		}
+		
+		
+		
+//		System.out.println("Last level child");
+//		for(Node child : parentListLevelNplus1)
+//			System.out.println(child.getTriPhone());
+	
+		//for(Node child: parentListLevelNplus1)
+        System.out.println("Counttt : "+count);
+			
+		int N = backTraceChild.getStateInfo()[0]+1;
+		int stateDuration[][] = new int[N][2];
+		String triPhoneSeq[] = new String[N];
+		
+		while(backTraceChild.getParent() != null){
+			Node parent = backTraceChild.getParent();
 
-		printResults(stateDuration);		
-		Performance.logEndTime();
-		Performance.memInfo();
+			stateDuration[backTraceChild.getStateInfo()[0]][0]++;
+			stateDuration[backTraceChild.getStateInfo()[0]][1] = backTraceChild.getStateInfo()[1];
+			triPhoneSeq[backTraceChild.getStateInfo()[0]] = backTraceChild.getTriPhone();
+			backTraceChild = parent;
+		}
+		
+
+		stateDuration[backTraceChild.getStateInfo()[0]][0]++;
+		stateDuration[backTraceChild.getStateInfo()[0]][1] = backTraceChild.getStateInfo()[1];
+		triPhoneSeq[backTraceChild.getStateInfo()[0]] = backTraceChild.getTriPhone();
+
+		
+		for(int i = 0; i<N ;i++)
+			System.out.println(stateDuration[i][0]+" "+stateDuration[i][1]+"\t"+triPhoneSeq[i]);
+		
+		
+//stateDuration[s]++;
+		
+//		while(child.getParent() != null){
+//			Node parent = child.getParent();
+//
+//			if(parent.getStateInfo()[1] != child.getStateInfo()[1]) s--;
+//			stateDuration[s]++;
+//			child = parent;
+//
+//		}
+//
+//		printResults(stateDuration);		
 		/*
 		 * Tree structure ends
 		 */
@@ -409,10 +465,12 @@ class Node{
 	Node parent;
 	
 	/* stateInfo[0] : State ID index
-	 * stateInfo[1] : State ID
+	 * stateInfo[1] : Observation id
 	 * stateInfo[2] : State tmat value 
 	 */
 	int stateInfo[];
+	
+	//int branchId;
 	
 	//Corresponding triphone
 	String triPhone;
@@ -428,6 +486,18 @@ class Node{
 		active = true;
 	}
 	
+	
+	
+//	public int getBranchId() {
+//		return branchId;
+//	}
+//
+//	public void setBranchId(int branchId) {
+//		this.branchId = branchId;
+//	}
+
+
+
 	public boolean isActive() {
 		return active;
 	}
